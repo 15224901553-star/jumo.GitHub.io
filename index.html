@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>晚安虚拟机跳转链接</title>
+  <style>
+    /* 基础样式重置 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    body {
+      background-color: #0f1320; /*  */
+      overflow: hidden; /* 出 */
+      position: relative;
+      min-height: 100vh;
+    }
+   
+    .neon-border {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none; /* 不影响其他元素点击 */
+      --neon-color: #00f0ff; /* 科技蓝主色 */
+    }
+    .neon-border::before,
+    .neon-border::after,
+    .neon-border .top,
+    .neon-border .bottom {
+      content: '';
+      position: absolute;
+      background: linear-gradient(90deg, transparent, var(--neon-color), transparent);
+      animation: neon-run 4s linear infinite;
+    }
+    /* 左右边框 */
+    .neon-border::before {
+      left: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      animation-direction: vertical;
+      background: linear-gradient(180deg, transparent, var(--neon-color), transparent);
+    }
+    .neon-border::after {
+      right: 0;
+      top: 0;
+      width: 4px;
+      height: 100%;
+      animation-direction: vertical-reverse;
+      background: linear-gradient(180deg, transparent, var(--neon-color), transparent);
+    }
+    /* 上下边框 */
+    .neon-border .top {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+    .neon-border .bottom {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      animation-direction: reverse;
+    }
+    /* 跑马灯动画 */
+    @keyframes neon-run {
+      0% { background-position: 0%; }
+      100% { background-position: 200%; }
+    }
+    /* 初始使用须知弹窗 */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .popup {
+      background: #fff;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 85%;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.3); /* 科技蓝阴影 */
+    }
+    /* 固定浅粉色样式区域 */
+    .fixed-img {
+      width: 100%;
+      background: #fff0f5;
+      border-radius: 12px;
+      padding: 30px 20px;
+      margin-bottom: 20px;
+    }
+    .img-title {
+      font-size: 24px;
+      color: #333;
+      font-weight: 700;
+      margin-bottom: 15px;
+    }
+    .img-desc {
+      font-size: 18px;
+      color: #666;
+      line-height: 1.7;
+      margin-bottom: 25px;
+    }
+    /* 通用科技风按钮样式 */
+    .tech-btn {
+      padding: 12px 35px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(45deg, #00c6ff, #0072ff); /* 渐变科技蓝 */
+      color: #fff;
+      cursor: pointer;
+      font-size: 19px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+      transition: all 0.3s;
+    }
+    .tech-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 25px rgba(0, 198, 255, 0.8);
+    }
+    /* 晚安虚拟机标识 */
+    .vm-logo {
+      font-size: 18px;
+      color: #00c6ff;
+      font-weight: 600;
+      margin: 20px 0 10px;
+      letter-spacing: 1px;
+      text-shadow: 0 0 10px rgba(0, 198, 255, 0.6);
+    }
+    .popup .countdown {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #999;
+    }
+    /* 关闭弹窗后显示的科技风功能按钮（居中） */
+    .function-buttons {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+      display: flex;
+      gap: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+    .function-buttons.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .func-btn {
+      padding: 15px 30px;
+      border: 2px solid #00f0ff;
+      border-radius: 8px;
+      background: rgba(0, 24, 48, 0.8);
+      color: #00f0ff;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.3), inset 0 0 10px rgba(0, 240, 255, 0.2);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    /* 按钮hover发光效果 */
+    .func-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.2), transparent);
+      transition: left 0.5s;
+    }
+    .func-btn:hover {
+      background: rgba(0, 32, 64, 0.9);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.6), inset 0 0 15px rgba(0, 240, 255, 0.3);
+      transform: translateY(-3px);
+    }
+    .func-btn:hover::before {
+      left: 100%;
+    }
+    /* 新增：点击更多资源弹出的黑色叠底弹窗 */
+    .resource-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9); /* 黑色半透明叠底 */
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+    .resource-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .resource-popup {
+      background: rgba(15, 19, 32, 0.95); /* 深邃科技黑背景 */
+      border: 2px solid #00f0ff;
+      border-radius: 12px;
+      padding: 40px 30px;
+      max-width: 70%;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0, 240, 255, 0.4);
+    }
+    .resource-title {
+      font-size: 26px;
+      color: #00f0ff;
+      margin-bottom: 30px;
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.7);
+    }
+    .close-resource {
+      margin-top: 20px;
+      padding: 10px 25px;
+      border: 2px solid #00f0ff;
+      border-radius: 8px;
+      background: transparent;
+      color: #00f0ff;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .close-resource:hover {
+      background: rgba(0, 240, 255, 0.1);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <!-- 科技感跑马灯边框（环绕页面，一直循环） -->
+  <div class="neon-border">
+    <div class="top"></div>
+    <div class="bottom"></div>
+  </div>
+
+  <!-- 关闭弹窗后显示的科技风功能按钮 -->
+  <div class="function-buttons" id="funcButtons">
+    <button class="func-btn">返回首页</button>
+    <button class="func-btn">联系我们</button>
+    <button class="func-btn" id="moreResourceBtn">更多资源</button>
+  </div>
+
+  <!-- 初始使用须知弹窗 -->
+  <div class="overlay" id="overlay">
+    <div class="popup">
+      <div class="fixed-img">
+        <div class="img-title">使用须知</div>
+        <div class="img-desc">
+          欢迎访问本页面~<br>
+          点击下方按钮可跳转至网盘链接，<br>
+          感谢您的支持！
+        </div>
+        <a href="https://www.123865.com/s/degBvd-Oa7cv" target="_blank" class="tech-btn">📁 点击跳转网盘</a>
+      </div>
+      <div class="vm-logo">✨ 由晚安虚拟机打造 ✨</div>
+      <div class="countdown">阅读5秒后自动关闭</div>
+      <button class="tech-btn" id="closePopup">立即关闭</button>
+    </div>
+  </div>
+
+
+  <div class="resource-overlay" id="resourceOverlay">
+    <div class="resource-popup">
+      <div class="resource-title">📁 更多资源下载</div>
+    
+      <a href="https://www.123865.com/s/degBvd-Oa7cv" target="_blank" class="tech-btn">点击跳转至网盘</a>
+      <button class="close-resource" id="closeResource">关闭</button>
+    </div>
+  </div>
+
+  <script>
+    const overlay = document.getElementById('overlay');
+    const closePopup = document.getElementById('closePopup');
+    const countdown = document.querySelector('.countdown');
+    const funcButtons = document.getElementById('funcButtons');
+    const moreResourceBtn = document.getElementById('moreResourceBtn');
+    const resourceOverlay = document.getElementById('resourceOverlay');
+    const closeResource = document.getElementById('closeResource');
+
+    // 页面加载后显示初始弹窗
+    window.addEventListener('load', () => {
+      overlay.classList.add('show');
+      let seconds = 5;
+      const timer = setInterval(() => {
+        seconds--;
+        countdown.textContent = `阅读${seconds}秒后自动关闭`;
+        if (seconds <= 0) {
+          clearInterval(timer);
+          overlay.classList.remove('show');
+          funcButtons.classList.add('show');
+        }
+      }, 1000);
+    });
+
+    // 关闭初始弹窗，显示功能按钮
+    closePopup.addEventListener('click', () => {
+      overlay.classList.remove('show');
+      funcButtons.classList.add('show');
+    });
+
+    // 点击遮罩层关闭初始弹窗
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.classList.remove('show');
+        funcButtons.classList.add('show');
+      }
+    });
+
+    // 点击「更多资源」，显示黑色叠底弹窗
+    moreResourceBtn.addEventListener('click', () => {
+      resourceOverlay.classList.add('show');
+    });
+
+    // 关闭更多资源弹窗
+    closeResource.addEventListener('click', () => {
+      resourceOverlay.classList.remove('show');
+    });
+
+    // 点击更多资源弹窗遮罩层关闭
+    resourceOverlay.addEventListener('click', (e) => {
+      if (e.target === resourceOverlay) {
+        resourceOverlay.classList.remove('show');
+      }
+    });
+
+    // 其他功能按钮点击效果
+    document.querySelector('.func-btn:nth-child(1)').addEventListener('click', () => {
+      alert('返回首页功能已触发，可在此处添加跳转逻辑');
+    });
+    document.querySelector('.func-btn:nth-child(2)').addEventListener('click', () => {
+      alert('联系我们功能已触发，可在此处添加联系方式或表单');
+    });
+  </script>
+</body>
+</html>
